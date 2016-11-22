@@ -88,6 +88,9 @@ REMAINING=("$@")
 # Packages already scanned
 DEPENDENCIES=()
 
+CURRENT=1
+TOTAL=$#
+
 
 _log 0 "Refreshing repositories..."
 _zypper refresh > /dev/null
@@ -95,7 +98,7 @@ _zypper refresh > /dev/null
 
 while [ ${#REMAINING[@]} -ne 0 ]; do
     package="${REMAINING[0]}"
-    _log 0 "Scanning dependencies for ${package}..."
+    _log 0 "Scanning dependencies for ${package} [${CURRENT}/${TOTAL}]..."
 
     for dep in $(depends "${package}"); do
         not_found=1
@@ -124,11 +127,13 @@ while [ ${#REMAINING[@]} -ne 0 ]; do
         if [ $not_found -eq 1 ]; then
             _log 1 "  Queueing: $dep"
             REMAINING+=("$dep")
+            TOTAL=$[TOTAL+1]
         fi
     done
 
     REMAINING=("${REMAINING[@]:1}")
     DEPENDENCIES+=("$package")
+    CURRENT=$[CURRENT+1]
 done
 
 _log 0 "Selected packages: ${DEPENDENCIES[@]}"
